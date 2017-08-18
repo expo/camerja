@@ -1,9 +1,4 @@
-import {
-  Camera,
-  Video,
-  FileSystem,
-  Permissions,
-} from 'expo';
+import { Constants, Camera, Video, FileSystem, Permissions } from 'expo';
 import React from 'react';
 import {
   StyleSheet,
@@ -119,7 +114,7 @@ export default class CameraScreen extends React.Component {
 
   takePicture = async function() {
     if (this.camera) {
-      this.camera.takePicture().then(data => {
+      this.camera.takePictureAsync().then(data => {
         FileSystem.moveAsync({
           from: data,
           to: `${FileSystem.documentDirectory}photos/Photo_${this.state
@@ -159,6 +154,7 @@ export default class CameraScreen extends React.Component {
             flex: 0.5,
             backgroundColor: 'transparent',
             flexDirection: 'row',
+            justifyContent: 'space-around',
           }}>
           <TouchableOpacity
             style={styles.flipButton}
@@ -190,7 +186,6 @@ export default class CameraScreen extends React.Component {
           <Slider
             style={{ width: 150, marginTop: 15, alignSelf: 'flex-end' }}
             onValueChange={this.setFocusDepth.bind(this)}
-            value={this.state.depth}
             step={0.1}
             disabled={this.state.autoFocus === 'on'}
           />
@@ -254,7 +249,8 @@ export default class CameraScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'ivory',
+    paddingTop: Constants.statusBarHeight,
+    backgroundColor: '#000',
   },
   navigation: {
     flex: 1,
@@ -300,4 +296,3 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
 });
-

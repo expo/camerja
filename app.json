@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "camerja",
-    "description": "An empty new project",
+    "description": "An example of using the Expo.Camera API. http://github.com/expo/camerja",
     "slug": "camerja",
     "privacy": "public",
     "sdkVersion": "20.0.0",
