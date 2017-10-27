@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Image,
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  Text,
-  ScrollView,
-} from 'react-native';
+import { Image, StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { FileSystem } from 'expo';
 
 export default class GalleryScreen extends React.Component {
@@ -15,9 +8,7 @@ export default class GalleryScreen extends React.Component {
   };
 
   componentDidMount() {
-    FileSystem.readDirectoryAsync(
-      FileSystem.documentDirectory + 'photos'
-    ).then(photos => {
+    FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'photos').then(photos => {
       this.setState({
         photos,
       });
@@ -27,14 +18,12 @@ export default class GalleryScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={this.props.onPress}>
+        <TouchableOpacity style={styles.backButton} onPress={this.props.onPress}>
           <Text>Back</Text>
         </TouchableOpacity>
         <ScrollView contentComponentStyle={{ flex: 1 }}>
           <View style={styles.pictures}>
-            {this.state.photos.map(photoUri =>
+            {this.state.photos.map(photoUri => (
               <Image
                 style={styles.picture}
                 source={{
@@ -42,7 +31,7 @@ export default class GalleryScreen extends React.Component {
                 }}
                 key={photoUri}
               />
-            )}
+            ))}
           </View>
         </ScrollView>
       </View>

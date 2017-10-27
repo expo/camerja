@@ -46,9 +46,7 @@ export default class CameraScreen extends React.Component {
   };
 
   componentDidMount() {
-    FileSystem.makeDirectoryAsync(
-      FileSystem.documentDirectory + 'photos'
-    ).catch(e => {
+    FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'photos').catch(e => {
       console.log(e, 'Directory exists');
     });
   }
@@ -117,8 +115,7 @@ export default class CameraScreen extends React.Component {
       this.camera.takePictureAsync().then(data => {
         FileSystem.moveAsync({
           from: data.uri,
-          to: `${FileSystem.documentDirectory}photos/Photo_${this.state
-            .photoId}.jpg`,
+          to: `${FileSystem.documentDirectory}photos/Photo_${this.state.photoId}.jpg`,
         }).then(() => {
           this.setState({
             photoId: this.state.photoId + 1,
@@ -156,24 +153,14 @@ export default class CameraScreen extends React.Component {
             flexDirection: 'row',
             justifyContent: 'space-around',
           }}>
-          <TouchableOpacity
-            style={styles.flipButton}
-            onPress={this.toggleFacing.bind(this)}>
+          <TouchableOpacity style={styles.flipButton} onPress={this.toggleFacing.bind(this)}>
             <Text style={styles.flipText}> FLIP </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.flipButton}
-            onPress={this.toggleFlash.bind(this)}>
-            <Text style={styles.flipText}>
-              {' '}FLASH: {this.state.flash}{' '}
-            </Text>
+          <TouchableOpacity style={styles.flipButton} onPress={this.toggleFlash.bind(this)}>
+            <Text style={styles.flipText}> FLASH: {this.state.flash} </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.flipButton}
-            onPress={this.toggleWB.bind(this)}>
-            <Text style={styles.flipText}>
-              {' '}WB: {this.state.whiteBalance}{' '}
-            </Text>
+          <TouchableOpacity style={styles.flipButton} onPress={this.toggleWB.bind(this)}>
+            <Text style={styles.flipText}> WB: {this.state.whiteBalance} </Text>
           </TouchableOpacity>
         </View>
         <View
@@ -210,25 +197,15 @@ export default class CameraScreen extends React.Component {
           <TouchableOpacity
             style={[styles.flipButton, { flex: 0.25, alignSelf: 'flex-end' }]}
             onPress={this.toggleFocus.bind(this)}>
-            <Text style={styles.flipText}>
-              {' '}AF : {this.state.autoFocus}{' '}
-            </Text>
+            <Text style={styles.flipText}> AF : {this.state.autoFocus} </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.flipButton,
-              styles.picButton,
-              { flex: 0.3, alignSelf: 'flex-end' },
-            ]}
+            style={[styles.flipButton, styles.picButton, { flex: 0.3, alignSelf: 'flex-end' }]}
             onPress={this.takePicture.bind(this)}>
             <Text style={styles.flipText}> SNAP </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.flipButton,
-              styles.galleryButton,
-              { flex: 0.25, alignSelf: 'flex-end' },
-            ]}
+            style={[styles.flipButton, styles.galleryButton, { flex: 0.25, alignSelf: 'flex-end' }]}
             onPress={this.toggleView.bind(this)}>
             <Text style={styles.flipText}> Gallery </Text>
           </TouchableOpacity>
