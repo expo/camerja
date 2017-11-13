@@ -6,8 +6,8 @@
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "dependencies": {
-    "expo": "22.0.0-rc.1",
-    "react": "16.0.0-beta.5",
-    "react-native": "expo/react-native#sdk-22"
+    "expo": "23.0.0-rc.2",
+    "react": "16.0.0",
+    "react-native": "expo/react-native#sdk-23"
   }
 }
