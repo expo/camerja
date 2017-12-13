@@ -4,17 +4,14 @@
     "description": "An example of using the Expo.Camera API. http://github.com/expo/camerja",
     "slug": "camerja",
     "privacy": "public",
-    "sdkVersion": "UNVERSIONED",
+    "sdkVersion": "24.0.0",
     "version": "1.0.0",
     "orientation": "portrait",
     "primaryColor": "#cccccc",
-    "icon": "./assets/icons/app-icon.png",
-    "loading": {
-      "icon": "./assets/icons/loading-icon.png",
-      "hideExponentText": false
-    },
-    "packagerOpts": {
-      "assetExts": ["ttf", "mp4"]
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover"
     },
     "ios": {
       "supportsTablet": true

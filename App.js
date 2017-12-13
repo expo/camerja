@@ -2,6 +2,7 @@ import { Constants, Camera, FileSystem } from 'expo';
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Slider, Vibration } from 'react-native';
 import GalleryScreen from './GalleryScreen';
+import isIPhoneX from 'react-native-is-iphonex';
 
 const landmarkSize = 2;
 
@@ -220,6 +221,7 @@ export default class CameraScreen extends React.Component {
             backgroundColor: 'transparent',
             flexDirection: 'row',
             justifyContent: 'space-around',
+            paddingTop: Constants.statusBarHeight / 2,
           }}>
           <TouchableOpacity style={styles.flipButton} onPress={this.toggleFacing.bind(this)}>
             <Text style={styles.flipText}> FLIP </Text>
@@ -237,17 +239,20 @@ export default class CameraScreen extends React.Component {
             backgroundColor: 'transparent',
             flexDirection: 'row',
             alignSelf: 'flex-end',
+            marginBottom: -5,
           }}>
-          <Slider
-            style={{ width: 150, marginTop: 15, alignSelf: 'flex-end' }}
-            onValueChange={this.setFocusDepth.bind(this)}
-            step={0.1}
-            disabled={this.state.autoFocus === 'on'}
-          />
+          {this.state.autoFocus !== 'on' ? (
+            <Slider
+              style={{ width: 150, marginTop: 15, marginRight: 15, alignSelf: 'flex-end' }}
+              onValueChange={this.setFocusDepth.bind(this)}
+              step={0.1}
+            />
+          ) : null}
         </View>
         <View
           style={{
             flex: 0.1,
+            paddingBottom: isIPhoneX ? 20 : 0,
             backgroundColor: 'transparent',
             flexDirection: 'row',
             alignSelf: 'flex-end',
@@ -296,7 +301,6 @@ export default class CameraScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Constants.statusBarHeight,
     backgroundColor: '#000',
   },
   navigation: {
