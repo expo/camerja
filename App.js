@@ -1,4 +1,4 @@
-import { Constants, Camera, FileSystem } from 'expo';
+import { Constants, Camera, FileSystem, Permissions } from 'expo';
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Slider, Vibration } from 'react-native';
 import GalleryScreen from './GalleryScreen';
@@ -36,7 +36,13 @@ export default class CameraScreen extends React.Component {
     showGallery: false,
     photos: [],
     faces: [],
+    permissionsGranted: false,
   };
+
+  async componentWillMount() {
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    this.setState({ permissionsGranted: status === 'granted' });
+  }
 
   componentDidMount() {
     FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'photos').catch(e => {
@@ -44,7 +50,7 @@ export default class CameraScreen extends React.Component {
     });
   }
 
-  getRatios = async function() {
+  getRatios = async () => {
     const ratios = await this.camera.getSupportedRatios();
     return ratios;
   };
@@ -196,6 +202,16 @@ export default class CameraScreen extends React.Component {
     );
   }
 
+  renderNoPermissions() {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 10 }}>
+        <Text style={{ color: 'white' }}>
+          Camera permissions not granted - cannot open camera preview.
+        </Text>
+      </View>
+    );
+  }
+
   renderCamera() {
     return (
       <Camera
@@ -290,11 +306,11 @@ export default class CameraScreen extends React.Component {
   }
 
   render() {
-    return (
-      <View style={styles.container}>
-        {this.state.showGallery ? this.renderGallery() : this.renderCamera()}
-      </View>
-    );
+    const cameraScreenContent = this.state.permissionsGranted
+      ? this.renderCamera()
+      : this.renderNoPermissions();
+    const content = this.state.showGallery ? this.renderGallery() : cameraScreenContent;
+    return <View style={styles.container}>{content}</View>;
   }
 }
 
