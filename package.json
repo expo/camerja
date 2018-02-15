@@ -6,9 +6,9 @@
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "dependencies": {
-    "expo": "25.0.0-rc.1",
+    "expo": "26.0.0-rc.0",
     "react": "16.2.0",
-    "react-native": "expo/react-native#sdk-25.0.0-beta.0",
+    "react-native": "expo/react-native#sdk-26",
     "react-native-is-iphonex": "^1.0.1"
   }
 }

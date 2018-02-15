@@ -10,16 +10,24 @@ export default class GalleryScreen extends React.Component {
     images: {},
     photos: [],
   };
+  _mounted = false;
 
   componentDidMount() {
+    this._mounted = true;
     FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'photos').then(photos => {
-      this.setState(
-        {
-          photos,
-        },
-        this.detectFaces
-      );
+      if (this._mounted) {
+        this.setState(
+          {
+            photos,
+          },
+          this.detectFaces
+        );
+      }
     });
+  }
+
+  componentWillUnmount() {
+    this._mounted = false;
   }
 
   getImageDimensions = ({ width, height }) => {
@@ -60,11 +68,13 @@ export default class GalleryScreen extends React.Component {
       .then(this.facesDetected)
       .catch(this.handleFaceDetectionError);
 
-  facesDetected = ({ image, faces }) =>
+  facesDetected = ({ image, faces }) => {
+    if (!this._mounted) return;
     this.setState({
       faces: { ...this.state.faces, [image.uri]: faces },
       images: { ...this.state.images, [image.uri]: image },
     });
+  }
 
   handleFaceDetectionError = error => console.warn(error);
 
