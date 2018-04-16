@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
-import { FileSystem, FaceDetector } from 'expo';
+import { FileSystem, FaceDetector, MediaLibrary } from 'expo';
 
 const pictureSize = 150;
 
@@ -58,6 +58,21 @@ export default class GalleryScreen extends React.Component {
     }
   };
 
+  saveToGallery = async () => {
+    const { photos } = this.state;
+
+    if (photos.length > 0) {
+      const promises = photos.map(photo => {
+        return MediaLibrary.createAssetAsync(`${FileSystem.documentDirectory}photos/${photo}`)
+      });
+
+      await Promise.all(promises);
+      alert('Successfully saved photos to user\'s gallery!');
+    } else {
+      alert('No photos to save!');
+    }
+  };
+
   detectFaces = () => this.state.photos.forEach(this.detectFace);
 
   detectFace = photoUri =>
@@ -109,9 +124,14 @@ export default class GalleryScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.backButton} onPress={this.props.onPress}>
-          <Text>Back</Text>
-        </TouchableOpacity>
+        <View style={styles.navbar}>
+          <TouchableOpacity style={styles.button} onPress={this.props.onPress}>
+            <Text>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={this.saveToGallery}>
+            <Text>Save to gallery</Text>
+          </TouchableOpacity>
+        </View>
         <ScrollView contentComponentStyle={{ flex: 1 }}>
           <View style={styles.pictures}>
             {this.state.photos.map(photoUri => (
@@ -139,6 +159,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 20,
+  },
+  navbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'indianred',
   },
   pictures: {
     flex: 1,
@@ -181,9 +207,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     backgroundColor: 'transparent',
   },
-  backButton: {
+  button: {
     padding: 20,
-    marginBottom: 4,
-    backgroundColor: 'indianred',
   },
 });
