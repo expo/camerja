@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
-import { FileSystem, FaceDetector, MediaLibrary } from 'expo';
+import { FileSystem, FaceDetector, MediaLibrary, Permissions } from 'expo';
 
 const pictureSize = 150;
 
@@ -62,6 +62,12 @@ export default class GalleryScreen extends React.Component {
     const { photos } = this.state;
 
     if (photos.length > 0) {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+      if (status !== 'granted') {
+        throw new Error('Denied CAMERA_ROLL permissions!');
+      }
+
       const promises = photos.map(photo => {
         return MediaLibrary.createAssetAsync(`${FileSystem.documentDirectory}photos/${photo}`)
       });
