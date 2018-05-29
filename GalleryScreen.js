@@ -1,65 +1,36 @@
 import React from 'react';
 import { Image, StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { FileSystem, FaceDetector, MediaLibrary, Permissions } from 'expo';
+import { MaterialIcons } from '@expo/vector-icons';
+import Photo from './Photo';
 
-const pictureSize = 150;
+const PHOTOS_DIR = FileSystem.documentDirectory + 'photos';
 
 export default class GalleryScreen extends React.Component {
   state = {
     faces: {},
     images: {},
     photos: [],
+    selected: [],
   };
-  _mounted = false;
 
-  componentDidMount() {
-    this._mounted = true;
-    FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'photos').then(photos => {
-      if (this._mounted) {
-        this.setState(
-          {
-            photos,
-          },
-          this.detectFaces
-        );
-      }
-    });
-  }
+  componentDidMount = async () => {
+    const photos = await FileSystem.readDirectoryAsync(PHOTOS_DIR);
+    this.setState({ photos });
+  };
 
-  componentWillUnmount() {
-    this._mounted = false;
-  }
-
-  getImageDimensions = ({ width, height }) => {
-    if (width > height) {
-      const scaledHeight = pictureSize * height / width;
-      return {
-        width: pictureSize,
-        height: scaledHeight,
-
-        scaleX: pictureSize / width,
-        scaleY: scaledHeight / height,
-
-        offsetX: 0,
-        offsetY: (pictureSize - scaledHeight) / 2,
-      };
+  toggleSelection = (uri, isSelected) => {
+    let selected = this.state.selected;
+    if (isSelected) {
+      selected.push(uri);
     } else {
-      const scaledWidth = pictureSize * width / height;
-      return {
-        width: scaledWidth,
-        height: pictureSize,
-
-        scaleX: scaledWidth / width,
-        scaleY: pictureSize / height,
-
-        offsetX: (pictureSize - scaledWidth) / 2,
-        offsetY: 0,
-      };
+      selected = selected.filter(item => item !== uri);
     }
+    this.setState({ selected });
   };
 
   saveToGallery = async () => {
-    const { photos } = this.state;
+    const photos = this.state.selected;
 
     if (photos.length > 0) {
       const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
@@ -68,8 +39,8 @@ export default class GalleryScreen extends React.Component {
         throw new Error('Denied CAMERA_ROLL permissions!');
       }
 
-      const promises = photos.map(photo => {
-        return MediaLibrary.createAssetAsync(`${FileSystem.documentDirectory}photos/${photo}`)
+      const promises = photos.map(photoUri => {
+        return MediaLibrary.createAssetAsync(photoUri);
       });
 
       await Promise.all(promises);
@@ -79,81 +50,27 @@ export default class GalleryScreen extends React.Component {
     }
   };
 
-  detectFaces = () => this.state.photos.forEach(this.detectFace);
-
-  detectFace = photoUri =>
-    FaceDetector.detectFacesAsync(`${FileSystem.documentDirectory}photos/${photoUri}`, {
-      detectLandmarks: FaceDetector.Constants.Landmarks.none,
-      runClassifications: FaceDetector.Constants.Classifications.all,
-    })
-      .then(this.facesDetected)
-      .catch(this.handleFaceDetectionError);
-
-  facesDetected = ({ image, faces }) => {
-    if (!this._mounted) return;
-    this.setState({
-      faces: { ...this.state.faces, [image.uri]: faces },
-      images: { ...this.state.images, [image.uri]: image },
-    });
-  }
-
-  handleFaceDetectionError = error => console.warn(error);
-
-  renderFaces = photoUri =>
-    this.state.images[photoUri] &&
-    this.state.faces[photoUri] &&
-    this.state.faces[photoUri].map(this.renderFace(this.state.images[photoUri]));
-
-  renderFace = image => (face, index) => {
-    const { scaleX, scaleY, offsetX, offsetY } = this.getImageDimensions(image);
-    const layout = {
-      top: offsetY + face.bounds.origin.y * scaleY,
-      left: offsetX + face.bounds.origin.x * scaleX,
-      width: face.bounds.size.width * scaleX,
-      height: face.bounds.size.height * scaleY,
-    };
-
-    return (
-      <View
-        key={index}
-        style={[styles.face, layout]}
-        transform={[
-          { perspective: 600 },
-          { rotateZ: `${(face.rollAngle || 0).toFixed(0)}deg` },
-          { rotateY: `${(face.yawAngle || 0).toFixed(0)}deg` },
-        ]}>
-        <Text style={styles.faceText}>😁 {(face.smilingProbability * 100).toFixed(0)}%</Text>
-      </View>
-    );
-  };
+  renderPhoto = fileName => 
+    <Photo
+      key={fileName}
+      uri={`${PHOTOS_DIR}/${fileName}`}
+      onSelectionToggle={this.toggleSelection}
+    />;
 
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.navbar}>
           <TouchableOpacity style={styles.button} onPress={this.props.onPress}>
-            <Text>Back</Text>
+            <MaterialIcons name="arrow-back" size={25} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={this.saveToGallery}>
-            <Text>Save to gallery</Text>
+            <Text style={styles.whiteText}>Save selected to gallery</Text>
           </TouchableOpacity>
         </View>
         <ScrollView contentComponentStyle={{ flex: 1 }}>
           <View style={styles.pictures}>
-            {this.state.photos.map(photoUri => (
-              <View style={styles.pictureWrapper} key={photoUri}>
-                <Image
-                  key={photoUri}
-                  style={styles.picture}
-                  source={{
-                    uri: `${FileSystem.documentDirectory}photos/${photoUri}`,
-                  }}
-                />
-                <View style={styles.facesContainer}>
-                  {this.renderFaces(`${FileSystem.documentDirectory}photos/${photoUri}`)}
-                </View>
-              </View>
-            ))}
+            {this.state.photos.map(this.renderPhoto)}
           </View>
         </ScrollView>
       </View>
@@ -165,55 +82,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 20,
+    backgroundColor: 'white',
   },
   navbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'indianred',
+    backgroundColor: '#4630EB',
   },
   pictures: {
     flex: 1,
     flexWrap: 'wrap',
     flexDirection: 'row',
-  },
-  picture: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    top: 0,
-    resizeMode: 'contain',
-  },
-  pictureWrapper: {
-    width: pictureSize,
-    height: pictureSize,
-    margin: 5,
-  },
-  facesContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    top: 0,
-  },
-  face: {
-    borderWidth: 2,
-    borderRadius: 2,
-    position: 'absolute',
-    borderColor: '#FFD700',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  faceText: {
-    color: '#FFD700',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    margin: 2,
-    fontSize: 10,
-    backgroundColor: 'transparent',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
   },
   button: {
     padding: 20,
   },
+  whiteText: {
+    color: 'white',
+  }
 });

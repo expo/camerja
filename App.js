@@ -1,8 +1,24 @@
 import { Constants, Camera, FileSystem, Permissions } from 'expo';
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Slider, Vibration } from 'react-native';
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Slider,
+  Platform
+} from 'react-native';
 import GalleryScreen from './GalleryScreen';
 import isIPhoneX from 'react-native-is-iphonex';
+
+import { 
+  Ionicons,
+  MaterialIcons,
+  Foundation,
+  MaterialCommunityIcons,
+  Octicons
+} from '@expo/vector-icons';
 
 const landmarkSize = 2;
 
@@ -11,6 +27,13 @@ const flashModeOrder = {
   on: 'auto',
   auto: 'torch',
   torch: 'off',
+};
+
+const flashIcons = {
+  off: 'flash-off',
+  on: 'flash-on',
+  auto: 'flash-auto',
+  torch: 'highlight'
 };
 
 const wbOrder = {
@@ -22,21 +45,34 @@ const wbOrder = {
   incandescent: 'auto',
 };
 
+const wbIcons = {
+  auto: 'wb-auto',
+  sunny: 'wb-sunny',
+  cloudy: 'wb-cloudy',
+  shadow: 'beach-access',
+  fluorescent: 'wb-iridescent',
+  incandescent: 'wb-incandescent',
+};
+
 export default class CameraScreen extends React.Component {
   state = {
     flash: 'off',
     zoom: 0,
     autoFocus: 'on',
-    depth: 0,
     type: 'back',
     whiteBalance: 'auto',
     ratio: '16:9',
     ratios: [],
-    photoId: 1,
-    showGallery: false,
-    photos: [],
+    barcodeScanning: false,
+    faceDetecting: false,
     faces: [],
+    newPhotos: false,
     permissionsGranted: false,
+    pictureSize: undefined,
+    pictureSizes: [],
+    pictureSizeId: 0,
+    showGallery: false,
+    showMoreOptions: false,
   };
 
   async componentWillMount() {
@@ -55,78 +91,81 @@ export default class CameraScreen extends React.Component {
     return ratios;
   };
 
-  toggleView() {
-    this.setState({
-      showGallery: !this.state.showGallery,
-    });
-  }
+  toggleView = () => this.setState({ showGallery: !this.state.showGallery, newPhotos: false });
 
-  toggleFacing() {
-    this.setState({
-      type: this.state.type === 'back' ? 'front' : 'back',
-    });
-  }
+  toggleMoreOptions = () => this.setState({ showMoreOptions: !this.state.showMoreOptions });
 
-  toggleFlash() {
-    this.setState({
-      flash: flashModeOrder[this.state.flash],
-    });
-  }
+  toggleFacing = () => this.setState({ type: this.state.type === 'back' ? 'front' : 'back' });
 
-  setRatio(ratio) {
-    this.setState({
-      ratio,
-    });
-  }
+  toggleFlash = () => this.setState({ flash: flashModeOrder[this.state.flash] });
 
-  toggleWB() {
-    this.setState({
-      whiteBalance: wbOrder[this.state.whiteBalance],
-    });
-  }
+  setRatio = ratio => this.setState({ ratio });
 
-  toggleFocus() {
-    this.setState({
-      autoFocus: this.state.autoFocus === 'on' ? 'off' : 'on',
-    });
-  }
+  toggleWB = () => this.setState({ whiteBalance: wbOrder[this.state.whiteBalance] });
 
-  zoomOut() {
-    this.setState({
-      zoom: this.state.zoom - 0.1 < 0 ? 0 : this.state.zoom - 0.1,
-    });
-  }
+  toggleFocus = () => this.setState({ autoFocus: this.state.autoFocus === 'on' ? 'off' : 'on' });
 
-  zoomIn() {
-    this.setState({
-      zoom: this.state.zoom + 0.1 > 1 ? 1 : this.state.zoom + 0.1,
-    });
-  }
+  zoomOut = () => this.setState({ zoom: this.state.zoom - 0.1 < 0 ? 0 : this.state.zoom - 0.1 });
 
-  setFocusDepth(depth) {
-    this.setState({
-      depth,
-    });
-  }
+  zoomIn = () => this.setState({ zoom: this.state.zoom + 0.1 > 1 ? 1 : this.state.zoom + 0.1 });
 
-  takePicture = async function() {
+  setFocusDepth = depth => this.setState({ depth });
+
+  toggleBarcodeScanning = () => this.setState({ barcodeScanning: !this.state.barcodeScanning });
+
+  toggleFaceDetection = () => this.setState({ faceDetecting: !this.state.faceDetecting });
+
+  takePicture = () => {
     if (this.camera) {
-      this.camera.takePictureAsync().then(data => {
-        FileSystem.moveAsync({
-          from: data.uri,
-          to: `${FileSystem.documentDirectory}photos/Photo_${this.state.photoId}.jpg`,
-        }).then(() => {
-          this.setState({
-            photoId: this.state.photoId + 1,
-          });
-          Vibration.vibrate();
-        });
-      });
+      this.camera.takePictureAsync({ onPictureSaved: this.onPictureSaved });
     }
+  };
+
+  onPictureSaved = async photo => {
+    await FileSystem.moveAsync({
+      from: photo.uri,
+      to: `${FileSystem.documentDirectory}photos/${Date.now()}.jpg`,
+    });
+    this.setState({ newPhotos: true });
+  }
+
+  onBarCodeRead = code => {
+    this.setState(
+      { barcodeScanning: !this.state.barcodeScanning },
+      Alert.alert(`Barcode found: ${code.data}`)
+    );
   };
 
   onFacesDetected = ({ faces }) => this.setState({ faces });
   onFaceDetectionError = state => console.warn('Faces detection error:', state);
+
+  collectPictureSizes = async () => {
+    if (this.camera) {
+      const pictureSizes = await this.camera.getAvailablePictureSizesAsync(this.state.ratio);
+      let pictureSizeId = 0;
+      if (Platform.OS === 'ios') {
+        pictureSizeId = pictureSizes.indexOf('High');
+      } else {
+        // returned array is sorted in ascending order - default size is the largest one
+        pictureSizeId = pictureSizes.length-1;
+      }
+      this.setState({ pictureSizes, pictureSizeId, pictureSize: pictureSizes[pictureSizeId] });
+    }
+  };
+
+  previousPictureSize = () => this.changePictureSize(1);
+  nextPictureSize = () => this.changePictureSize(-1);
+
+  changePictureSize = direction => {
+    let newId = this.state.pictureSizeId + direction;
+    const length = this.state.pictureSizes.length;
+    if (newId >= length) {
+      newId = 0;
+    } else if (newId < 0) {
+      newId = length -1;
+    }
+    this.setState({ pictureSize: this.state.pictureSizes[newId], pictureSizeId: newId });
+  }
 
   renderGallery() {
     return <GalleryScreen onPress={this.toggleView.bind(this)} />;
@@ -186,124 +225,120 @@ export default class CameraScreen extends React.Component {
     );
   }
 
-  renderFaces() {
-    return (
-      <View style={styles.facesContainer} pointerEvents="none">
-        {this.state.faces.map(this.renderFace)}
-      </View>
-    );
-  }
+  renderFaces = () => 
+    <View style={styles.facesContainer} pointerEvents="none">
+      {this.state.faces.map(this.renderFace)}
+    </View>
 
-  renderLandmarks() {
-    return (
-      <View style={styles.facesContainer} pointerEvents="none">
-        {this.state.faces.map(this.renderLandmarksOfFace)}
-      </View>
-    );
-  }
+  renderLandmarks = () => 
+    <View style={styles.facesContainer} pointerEvents="none">
+      {this.state.faces.map(this.renderLandmarksOfFace)}
+    </View>
 
-  renderNoPermissions() {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 10 }}>
-        <Text style={{ color: 'white' }}>
-          Camera permissions not granted - cannot open camera preview.
-        </Text>
-      </View>
-    );
-  }
+  renderNoPermissions = () => 
+    <View style={styles.noPermissions}>
+      <Text style={{ color: 'white' }}>
+        Camera permissions not granted - cannot open camera preview.
+      </Text>
+    </View>
 
-  renderCamera() {
-    return (
-      <Camera
-        ref={ref => {
-          this.camera = ref;
-        }}
-        style={{
-          flex: 1,
-        }}
-        type={this.state.type}
-        flashMode={this.state.flash}
-        autoFocus={this.state.autoFocus}
-        zoom={this.state.zoom}
-        whiteBalance={this.state.whiteBalance}
-        ratio={this.state.ratio}
-        faceDetectionLandmarks={Camera.Constants.FaceDetection.Landmarks.all}
-        onFacesDetected={this.onFacesDetected}
-        onFaceDetectionError={this.onFaceDetectionError}
-        focusDepth={this.state.depth}>
-        <View
-          style={{
-            flex: 0.5,
-            backgroundColor: 'transparent',
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            paddingTop: Constants.statusBarHeight / 2,
-          }}>
-          <TouchableOpacity style={styles.flipButton} onPress={this.toggleFacing.bind(this)}>
-            <Text style={styles.flipText}> FLIP </Text>
+  renderTopBar = () => 
+    <View
+      style={styles.topBar}>
+      <TouchableOpacity style={styles.toggleButton} onPress={this.toggleFacing}>
+        <Ionicons name="ios-reverse-camera" size={32} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.toggleButton} onPress={this.toggleFlash}>
+        <MaterialIcons name={flashIcons[this.state.flash]} size={32} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.toggleButton} onPress={this.toggleWB}>
+        <MaterialIcons name={wbIcons[this.state.whiteBalance]} size={32} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.toggleButton} onPress={this.toggleFocus}>
+        <Text style={[styles.autoFocusLabel, { color: this.state.autoFocus === 'on' ? "white" : "#6b6b6b" }]}>AF</Text>
+      </TouchableOpacity>   
+    </View>
+
+  renderBottomBar = () =>
+    <View
+      style={styles.bottomBar}>
+      <TouchableOpacity style={styles.bottomButton} onPress={this.toggleMoreOptions}>
+        <Octicons name="kebab-horizontal" size={30} color="white"/>
+      </TouchableOpacity>
+      <View style={{ flex: 0.4 }}>
+        <TouchableOpacity
+          onPress={this.takePicture}
+          style={{ alignSelf: 'center' }}
+        >
+          <Ionicons name="ios-radio-button-on" size={70} color="white" />
+        </TouchableOpacity>
+      </View> 
+      <TouchableOpacity style={styles.bottomButton} onPress={this.toggleView}>
+        <View>
+          <Foundation name="thumbnails" size={30} color="white" />
+          {this.state.newPhotos && <View style={styles.newPhotosDot}/>}
+        </View>
+      </TouchableOpacity>
+    </View>
+
+  renderMoreOptions = () =>
+    (
+      <View style={styles.options}>
+        <View style={styles.detectors}>
+          <TouchableOpacity onPress={this.toggleFaceDetection}>
+            <MaterialIcons name="tag-faces" size={32} color={this.state.faceDetecting ? "white" : "#858585" } />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.flipButton} onPress={this.toggleFlash.bind(this)}>
-            <Text style={styles.flipText}> FLASH: {this.state.flash} </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.flipButton} onPress={this.toggleWB.bind(this)}>
-            <Text style={styles.flipText}> WB: {this.state.whiteBalance} </Text>
+          <TouchableOpacity onPress={this.toggleBarcodeScanning}>
+            <MaterialCommunityIcons name="barcode-scan" size={32} color={this.state.barcodeScanning ? "white" : "#858585" } />
           </TouchableOpacity>
         </View>
-        <View
-          style={{
-            flex: 0.4,
-            backgroundColor: 'transparent',
-            flexDirection: 'row',
-            alignSelf: 'flex-end',
-            marginBottom: -5,
-          }}>
-          {this.state.autoFocus !== 'on' ? (
-            <Slider
-              style={{ width: 150, marginTop: 15, marginRight: 15, alignSelf: 'flex-end' }}
-              onValueChange={this.setFocusDepth.bind(this)}
-              step={0.1}
-            />
-          ) : null}
+
+        <View style={styles.pictureSizeContainer}>
+          <Text style={styles.pictureQualityLabel}>Picture quality</Text>
+          <View style={styles.pictureSizeChooser}>
+            <TouchableOpacity onPress={this.previousPictureSize} style={{ padding: 6 }}>
+              <Ionicons name="md-arrow-dropleft" size={14} color="white" />
+            </TouchableOpacity>
+            <View style={styles.pictureSizeLabel}>
+              <Text style={{color: 'white'}}>{this.state.pictureSize}</Text>
+            </View>
+            <TouchableOpacity onPress={this.nextPictureSize} style={{ padding: 6 }}>
+              <Ionicons name="md-arrow-dropright" size={14} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
-        <View
-          style={{
-            flex: 0.1,
-            paddingBottom: isIPhoneX ? 20 : 0,
-            backgroundColor: 'transparent',
-            flexDirection: 'row',
-            alignSelf: 'flex-end',
-          }}>
-          <TouchableOpacity
-            style={[styles.flipButton, { flex: 0.1, alignSelf: 'flex-end' }]}
-            onPress={this.zoomIn.bind(this)}>
-            <Text style={styles.flipText}> + </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.flipButton, { flex: 0.1, alignSelf: 'flex-end' }]}
-            onPress={this.zoomOut.bind(this)}>
-            <Text style={styles.flipText}> - </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.flipButton, { flex: 0.25, alignSelf: 'flex-end' }]}
-            onPress={this.toggleFocus.bind(this)}>
-            <Text style={styles.flipText}> AF : {this.state.autoFocus} </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.flipButton, styles.picButton, { flex: 0.3, alignSelf: 'flex-end' }]}
-            onPress={this.takePicture.bind(this)}>
-            <Text style={styles.flipText}> SNAP </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.flipButton, styles.galleryButton, { flex: 0.25, alignSelf: 'flex-end' }]}
-            onPress={this.toggleView.bind(this)}>
-            <Text style={styles.flipText}> Gallery </Text>
-          </TouchableOpacity>
-        </View>
-        {this.renderFaces()}
-        {this.renderLandmarks()}
-      </Camera>
+      </View> 
     );
-  }
+
+  renderCamera = () =>
+    (
+      <View style={{ flex: 1 }}>
+        <Camera
+          ref={ref => {
+            this.camera = ref;
+          }}
+          style={styles.camera}
+          onCameraReady={this.collectPictureSizes}
+          type={this.state.type}
+          flashMode={this.state.flash}
+          autoFocus={this.state.autoFocus}
+          zoom={this.state.zoom}
+          whiteBalance={this.state.whiteBalance}
+          ratio={this.state.ratio}
+          pictureSize={this.state.pictureSize}
+          faceDetectionLandmarks={Camera.Constants.FaceDetection.Landmarks.all}
+          onFacesDetected={this.state.faceDetecting ? this.onFacesDetected : undefined}
+          onFaceDetectionError={this.onFaceDetectionError}
+          onBarCodeRead={this.state.barcodeScanning ? this.onBarCodeRead : undefined}
+          >
+          {this.renderTopBar()}
+          {this.renderBottomBar()}
+        </Camera>
+        {this.state.faceDetecting && this.renderFaces()}
+        {this.state.faceDetecting && this.renderLandmarks()}
+        {this.state.showMoreOptions && this.renderMoreOptions()}
+      </View>
+    );
 
   render() {
     const cameraScreenContent = this.state.permissionsGranted
@@ -319,45 +354,100 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  navigation: {
+  camera: {
     flex: 1,
+    justifyContent: 'space-between',
+  },
+  topBar: {
+    flex: 0.2,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: Constants.statusBarHeight / 2,
+  },
+  bottomBar: {
+    paddingBottom: isIPhoneX ? 25 : 5,
+    backgroundColor: 'transparent',
+    alignSelf: 'flex-end',
+    justifyContent: 'space-between',
+    flex: 0.12,
+    flexDirection: 'row',
+  },
+  noPermissions: {
+    flex: 1,
+    alignItems:'center',
+    justifyContent: 'center',
+    padding: 10,
   },
   gallery: {
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  flipButton: {
-    flex: 0.3,
+  toggleButton: {
+    flex: 0.25,
     height: 40,
     marginHorizontal: 2,
     marginBottom: 10,
     marginTop: 20,
-    borderRadius: 8,
-    borderColor: 'white',
-    borderWidth: 1,
     padding: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flipText: {
-    color: 'white',
-    fontSize: 15,
+  autoFocusLabel: {
+    fontSize: 20,
+    fontWeight: 'bold'
   },
-  item: {
-    margin: 4,
-    backgroundColor: 'indianred',
-    height: 35,
-    width: 80,
-    borderRadius: 5,
-    alignItems: 'center',
+  bottomButton: {
+    flex: 0.3, 
+    height: 58, 
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  picButton: {
-    backgroundColor: 'darkseagreen',
+  newPhotosDot: {
+    position: 'absolute',
+    top: 0,
+    right: -5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#4630EB'
   },
-  galleryButton: {
-    backgroundColor: 'indianred',
+  options: {
+    position: 'absolute',
+    bottom: 80,
+    left: 30,
+    width: 200,
+    height: 160,
+    backgroundColor: '#000000BA',
+    borderRadius: 4,
+    padding: 10,
+  },
+  detectors: {
+    flex: 0.5,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  pictureQualityLabel: {
+    fontSize: 10,
+    marginVertical: 3, 
+    color: 'white'
+  },
+  pictureSizeContainer: {
+    flex: 0.5,
+    alignItems: 'center',
+    paddingTop: 10,
+  },
+  pictureSizeChooser: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row'
+  },
+  pictureSizeLabel: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   facesContainer: {
     position: 'absolute',
