@@ -326,7 +326,6 @@ export default class CameraScreen extends React.Component {
           whiteBalance={this.state.whiteBalance}
           ratio={this.state.ratio}
           pictureSize={this.state.pictureSize}
-          faceDetectionLandmarks={Camera.Constants.FaceDetection.Landmarks.all}
           onFacesDetected={this.state.faceDetecting ? this.onFacesDetected : undefined}
           onFaceDetectionError={this.onFaceDetectionError}
           onBarCodeRead={this.state.barcodeScanning ? this.onBarCodeRead : undefined}
