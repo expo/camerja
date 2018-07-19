@@ -121,6 +121,8 @@ export default class CameraScreen extends React.Component {
     }
   };
 
+  handleMountError = ({ message }) => console.error(message);
+
   onPictureSaved = async photo => {
     await FileSystem.moveAsync({
       from: photo.uri,
@@ -326,6 +328,7 @@ export default class CameraScreen extends React.Component {
           whiteBalance={this.state.whiteBalance}
           ratio={this.state.ratio}
           pictureSize={this.state.pictureSize}
+          onMountError={this.handleMountError}
           onFacesDetected={this.state.faceDetecting ? this.onFacesDetected : undefined}
           onFaceDetectionError={this.onFaceDetectionError}
           onBarCodeRead={this.state.barcodeScanning ? this.onBarCodeRead : undefined}
