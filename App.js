@@ -1,4 +1,4 @@
-import { Constants, Camera, FileSystem, Permissions } from 'expo';
+import { Constants, Camera, FileSystem, Permissions, BarCodeScanner } from 'expo';
 import React from 'react';
 import {
   Alert,
@@ -131,7 +131,7 @@ export default class CameraScreen extends React.Component {
     this.setState({ newPhotos: true });
   }
 
-  onBarCodeRead = code => {
+  onBarCodeScanned = code => {
     this.setState(
       { barcodeScanning: !this.state.barcodeScanning },
       Alert.alert(`Barcode found: ${code.data}`)
@@ -331,7 +331,13 @@ export default class CameraScreen extends React.Component {
           onMountError={this.handleMountError}
           onFacesDetected={this.state.faceDetecting ? this.onFacesDetected : undefined}
           onFaceDetectionError={this.onFaceDetectionError}
-          onBarCodeRead={this.state.barcodeScanning ? this.onBarCodeRead : undefined}
+          barCodeScannerSettings={{
+            barCodeTypes: [
+              BarCodeScanner.Constants.BarCodeType.qr,
+              BarCodeScanner.Constants.BarCodeType.pdf417,
+            ],
+          }}
+          onBarCodeScanned={this.state.barcodeScanning ? this.onBarCodeScanned : undefined}
           >
           {this.renderTopBar()}
           {this.renderBottomBar()}
