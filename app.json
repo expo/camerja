@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "camerja",
-    "description": "An example of using the Expo.Camera API. http://github.com/expo/camerja",
-    "slug": "camerja",
+    "name": "resumescanner",
+    "description": "A resume scanner based off of Expo.Camera API. http://github.com/expo/camerja",
+    "slug": "resumescanner",
     "privacy": "public",
-    "sdkVersion": "29.0.0",
+    "sdkVersion": "32.0.0",
     "version": "1.0.0",
     "orientation": "portrait",
     "primaryColor": "#cccccc",
