@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "resumescanner",
-    "description": "A resume scanner based off of Expo.Camera API. http://github.com/expo/camerja",
-    "slug": "resumescanner",
+    "name": "camerja",
+    "description": "An example of using the Expo.Camera API. http://github.com/expo/camerja",
+    "slug": "camerja",
     "privacy": "public",
     "sdkVersion": "32.0.0",
     "version": "1.0.0",
