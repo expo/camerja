@@ -7,10 +7,18 @@
     "eject": "expo eject"
   },
   "dependencies": {
-    "expo": "^32.0.0",
+    "expo": "^34.0.0",
+    "expo-barcode-scanner": "^6.0.0",
+    "expo-camera": "^6.0.0",
+    "expo-constants": "^6.0.0",
+    "expo-face-detector": "^6.0.1",
+    "expo-file-system": "^6.0.2",
+    "expo-media-library": "^6.0.0",
+    "expo-permissions": "^6.0.0",
     "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
-    "react-native-is-iphonex": "^1.0.1"
+    "react-native": "^0.59.8",
+    "react-native-is-iphonex": "^1.0.1",
+    "scheduler": "^0.15.0"
   },
   "devDependencies": {
     "babel-preset-expo": "^5.0.0"

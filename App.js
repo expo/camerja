@@ -1,4 +1,3 @@
-import { Constants, Camera, FileSystem, Permissions, BarCodeScanner } from 'expo';
 import React from 'react';
 import {
   Alert,
@@ -19,6 +18,12 @@ import {
   MaterialCommunityIcons,
   Octicons
 } from '@expo/vector-icons';
+
+import Constants from 'expo-constants'
+import * as Permissions from 'expo-permissions';
+import { BarCodeScanner } from 'expo-barcode-scanner';
+import * as FileSystem from 'expo-file-system';
+import { Camera } from 'expo-camera';
 
 const landmarkSize = 2;
 
