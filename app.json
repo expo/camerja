@@ -4,7 +4,7 @@
     "description": "An example of using the Expo.Camera API. http://github.com/expo/camerja",
     "slug": "camerja",
     "privacy": "public",
-    "sdkVersion": "32.0.0",
+    "sdkVersion": "35.0.0",
     "platforms": [
       "ios",
       "android"

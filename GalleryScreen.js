@@ -1,6 +1,20 @@
 import React from 'react';
-import { Image, StyleSheet, View, TouchableOpacity, Text, ScrollView } from 'react-native';
-import { FileSystem, FaceDetector, MediaLibrary, Permissions } from 'expo';
+import {
+  Image,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  ScrollView
+} from 'react-native';
+
+import * as Permissions from 'expo-permissions';
+
+import * as FileSystem from 'expo-file-system';
+
+import * as FaceDetector from 'expo-face-detector';
+import * as MediaLibrary from 'expo-media-library';
+
 import { MaterialIcons } from '@expo/vector-icons';
 import Photo from './Photo';
 
@@ -11,7 +25,7 @@ export default class GalleryScreen extends React.Component {
     faces: {},
     images: {},
     photos: [],
-    selected: [],
+    selected: []
   };
 
   componentDidMount = async () => {
@@ -44,18 +58,19 @@ export default class GalleryScreen extends React.Component {
       });
 
       await Promise.all(promises);
-      alert('Successfully saved photos to user\'s gallery!');
+      alert("Successfully saved photos to user's gallery!");
     } else {
       alert('No photos to save!');
     }
   };
 
-  renderPhoto = fileName => 
+  renderPhoto = fileName => (
     <Photo
       key={fileName}
       uri={`${PHOTOS_DIR}/${fileName}`}
       onSelectionToggle={this.toggleSelection}
-    />;
+    />
+  );
 
   render() {
     return (
@@ -82,25 +97,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 20,
-    backgroundColor: 'white',
+    backgroundColor: 'white'
   },
   navbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#4630EB',
+    backgroundColor: '#4630EB'
   },
   pictures: {
     flex: 1,
     flexWrap: 'wrap',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 8,
+    paddingVertical: 8
   },
   button: {
-    padding: 20,
+    padding: 20
   },
   whiteText: {
-    color: 'white',
+    color: 'white'
   }
 });
